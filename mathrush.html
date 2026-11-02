@@ -1,0 +1,59 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<style>:root{--a:#22c55e;--b:#15803d}
+*{-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;box-sizing:border-box;margin:0;padding:0}
+html{background:#0b0f17;min-height:100%}
+body{background:#0b0f17;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#fff;touch-action:manipulation;overflow-x:hidden}
+.wrapper{width:100%;max-width:480px;margin:auto;padding:12px}
+.card{background:linear-gradient(180deg,rgba(15,18,26,.97),rgba(10,12,18,.97));border:2px solid var(--a);border-radius:20px;box-shadow:0 14px 44px rgba(0,0,0,.75),inset 0 0 40px rgba(255,255,255,.03);padding:14px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.title{font-size:10px;letter-spacing:1.5px;color:var(--a);font-weight:800;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.title .dot{width:6px;height:6px;border-radius:50%;background:var(--a);box-shadow:0 0 8px var(--a);animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.bb{font-size:10px;color:#94a3b8;text-align:right}.bb b{color:#fff;font-size:14px}
+.stat-row{display:flex;gap:8px;margin-bottom:8px}
+.stat-pill{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:5px 8px;text-align:center}
+.lbl{font-size:8px;letter-spacing:1px;color:#64748b;text-transform:uppercase;font-weight:700}
+.val{font-size:13px;font-weight:900;font-variant-numeric:tabular-nums}
+canvas{display:block;margin:0 auto;max-width:100%;height:auto;border-radius:12px;border:2px solid #1e293b;background:#070a12;touch-action:none}
+#msg{text-align:center;margin-top:8px;font-size:12px;color:rgba(255,255,255,.55);min-height:16px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(60px,1fr));gap:8px;margin-top:10px}
+.dpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.btn{padding:13px 6px;font-size:15px;font-weight:800;border:none;border-radius:12px;cursor:pointer;color:#fff;text-align:center;background:linear-gradient(135deg,var(--a),var(--b))}
+.btn:active{transform:scale(.94);filter:brightness(.9)}
+.btn.alt{background:linear-gradient(135deg,#475569,#334155)}
+.grid{display:grid;gap:6px;margin:0 auto}
+.credit-bar{margin-top:10px;text-align:center;font-size:10px;font-weight:800;letter-spacing:1.5px;color:#94a3b8;text-transform:uppercase;border-top:1px dashed rgba(255,255,255,.12);padding-top:8px}
+.credit-bar span{color:var(--a)}
+</style>
+<body>
+<div class="wrapper"><div class="card">
+<div class="header"><div><div class="title"><span class="dot"></span>RuthlessImperium</div><h2 style="font-size:17px;font-weight:900;margin-top:2px">Math Rush ➕</h2></div><div class="bb">BEST<br><b id="best">0</b></div></div>
+<div class="stat-row"><div class="stat-pill"><div class="lbl">Skor</div><div class="val" id="s1">0</div></div><div class="stat-pill"><div class="lbl">Waktu</div><div class="val" id="s2">0</div></div><div class="stat-pill"><div class="lbl">Streak</div><div class="val" id="s3">0</div></div></div>
+<div id="q" style="text-align:center;font-size:40px;font-weight:900;padding:26px 0;background:#0f172a;border-radius:14px;border:2px solid #1e293b">?</div><div id="op" class="grid" style="grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px"></div><div class="controls"><button class="btn" id="go">▶ Mulai (45 detik)</button></div>
+<div id="msg"></div>
+<div class="credit-bar">Engineered by <span>RuthlessImperium</span> ⚡</div>
+</div></div>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+function S(i,v){$('s'+i).textContent=v}
+function tap(el,fn){el.addEventListener('pointerdown',function(e){e.preventDefault();fn(e)})}
+function msg(t){$('msg').textContent=t}
+function gb(){try{return parseInt(localStorage.getItem('ri_math')||'0',10)||0}catch(e){return 0}}
+function sb(v){try{localStorage.setItem('ri_math',String(v))}catch(e){}}
+function rnd(n){return Math.floor(Math.random()*n)}
+function swipe(el,fn){var sx,sy;el.addEventListener('pointerdown',function(e){sx=e.clientX;sy=e.clientY});el.addEventListener('pointerup',function(e){var dx=e.clientX-sx,dy=e.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<20){fn('tap');return}if(Math.abs(dx)>Math.abs(dy))fn(dx>0?'r':'l');else fn(dy>0?'d':'u')})}
+
+var score=0,left=0,run=false,streak=0,ans,tm,best=gb(),op=$('op');
+function gen(){var a=rnd(12)+2,b=rnd(12)+2,t=rnd(3),q,r;if(t==0){q=a+' + '+b;r=a+b}else if(t==1){if(b>a){var z=a;a=b;b=z}q=a+' − '+b;r=a-b}else{a=rnd(9)+2;b=rnd(9)+2;q=a+' × '+b;r=a*b}
+ ans=r;$('q').textContent=q+' = ?';var o=[r];while(o.length<4){var w=r+rnd(11)-5;if(w>=0&&o.indexOf(w)<0)o.push(w)}o.sort(function(){return Math.random()-.5});op.innerHTML='';
+ o.forEach(function(v){var d=document.createElement('button');d.className='btn';d.style.fontSize='22px';d.textContent=v;tap(d,function(){pick(v)});op.appendChild(d)})}
+function pick(v){if(!run)return;if(v==ans){score++;streak++;S(1,score);S(3,streak);if(streak%5==0){left+=2;S(2,left);msg('Bonus +2 detik! 🔥')}else msg('')}else{streak=0;S(3,0);left=Math.max(0,left-2);S(2,left);msg('Salah! −2 detik')}gen()}
+tap($('go'),function(){score=0;streak=0;left=45;run=true;S(1,0);S(2,45);S(3,0);$('best').textContent=best;msg('Jawab secepat mungkin!');gen();clearInterval(tm);tm=setInterval(function(){left--;S(2,Math.max(0,left));if(left<=0){run=false;clearInterval(tm);$('q').textContent='Selesai!';op.innerHTML='';if(score>best){best=score;sb(best);$('best').textContent=best}msg('Skor akhir '+score)}},1000)});
+$('best').textContent=best;msg('Tekan Mulai');
+
+})();
+</script>
+</body>
+</html>

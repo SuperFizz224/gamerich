@@ -1,0 +1,65 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<style>:root{--a:#38bdf8;--b:#0284c7}
+*{-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;box-sizing:border-box;margin:0;padding:0}
+html{background:#0b0f17;min-height:100%}
+body{background:#0b0f17;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#fff;touch-action:manipulation;overflow-x:hidden}
+.wrapper{width:100%;max-width:480px;margin:auto;padding:12px}
+.card{background:linear-gradient(180deg,rgba(15,18,26,.97),rgba(10,12,18,.97));border:2px solid var(--a);border-radius:20px;box-shadow:0 14px 44px rgba(0,0,0,.75),inset 0 0 40px rgba(255,255,255,.03);padding:14px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.title{font-size:10px;letter-spacing:1.5px;color:var(--a);font-weight:800;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.title .dot{width:6px;height:6px;border-radius:50%;background:var(--a);box-shadow:0 0 8px var(--a);animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.bb{font-size:10px;color:#94a3b8;text-align:right}.bb b{color:#fff;font-size:14px}
+.stat-row{display:flex;gap:8px;margin-bottom:8px}
+.stat-pill{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:5px 8px;text-align:center}
+.lbl{font-size:8px;letter-spacing:1px;color:#64748b;text-transform:uppercase;font-weight:700}
+.val{font-size:13px;font-weight:900;font-variant-numeric:tabular-nums}
+canvas{display:block;margin:0 auto;max-width:100%;height:auto;border-radius:12px;border:2px solid #1e293b;background:#070a12;touch-action:none}
+#msg{text-align:center;margin-top:8px;font-size:12px;color:rgba(255,255,255,.55);min-height:16px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(60px,1fr));gap:8px;margin-top:10px}
+.dpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.btn{padding:13px 6px;font-size:15px;font-weight:800;border:none;border-radius:12px;cursor:pointer;color:#fff;text-align:center;background:linear-gradient(135deg,var(--a),var(--b))}
+.btn:active{transform:scale(.94);filter:brightness(.9)}
+.btn.alt{background:linear-gradient(135deg,#475569,#334155)}
+.grid{display:grid;gap:6px;margin:0 auto}
+.credit-bar{margin-top:10px;text-align:center;font-size:10px;font-weight:800;letter-spacing:1.5px;color:#94a3b8;text-transform:uppercase;border-top:1px dashed rgba(255,255,255,.12);padding-top:8px}
+.credit-bar span{color:var(--a)}
+</style>
+<body>
+<div class="wrapper"><div class="card">
+<div class="header"><div><div class="title"><span class="dot"></span>RuthlessImperium</div><h2 style="font-size:17px;font-weight:900;margin-top:2px">Flappy Bird 🐤</h2></div><div class="bb">BEST<br><b id="best">0</b></div></div>
+<div class="stat-row"><div class="stat-pill"><div class="lbl">Skor</div><div class="val" id="s1">0</div></div><div class="stat-pill"><div class="lbl">Best</div><div class="val" id="s2">0</div></div></div>
+<canvas id="c" width="320" height="420"></canvas>
+<div id="msg"></div>
+<div class="credit-bar">Engineered by <span>RuthlessImperium</span> ⚡</div>
+</div></div>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+function S(i,v){$('s'+i).textContent=v}
+function tap(el,fn){el.addEventListener('pointerdown',function(e){e.preventDefault();fn(e)})}
+function msg(t){$('msg').textContent=t}
+function gb(){try{return parseInt(localStorage.getItem('ri_flappy')||'0',10)||0}catch(e){return 0}}
+function sb(v){try{localStorage.setItem('ri_flappy',String(v))}catch(e){}}
+function rnd(n){return Math.floor(Math.random()*n)}
+function swipe(el,fn){var sx,sy;el.addEventListener('pointerdown',function(e){sx=e.clientX;sy=e.clientY});el.addEventListener('pointerup',function(e){var dx=e.clientX-sx,dy=e.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<20){fn('tap');return}if(Math.abs(dx)>Math.abs(dy))fn(dx>0?'r':'l');else fn(dy>0?'d':'u')})}
+
+var cv=$('c'),x=cv.getContext('2d'),b,pipes,score,dead,started,fr,best=gb();
+function reset(){b={y:200,v:0};pipes=[];score=0;dead=false;started=false;fr=0;S(1,0);S(2,best);$('best').textContent=best;msg('Ketuk layar untuk terbang')}
+function die(){dead=true;if(score>best){best=score;sb(best)}S(2,best);$('best').textContent=best;msg('Jatuh! Ketuk untuk main lagi')}
+function flap(){if(dead){reset();return}started=true;b.v=-7}
+function loop(){if(started&&!dead){fr++;b.v+=.45;b.y+=b.v;if(fr%90==1)pipes.push({x:320,g:70+Math.random()*200,s:false});
+ pipes.forEach(function(p){p.x-=2.4;if(!p.s&&p.x+40<80){p.s=true;score++;S(1,score)}if(92>p.x&&68<p.x+40&&(b.y-12<p.g||b.y+12>p.g+120))die()});
+ pipes=pipes.filter(function(p){return p.x>-50});if(b.y>408||b.y<12)die()}draw();requestAnimationFrame(loop)}
+function draw(){var gr=x.createLinearGradient(0,0,0,420);gr.addColorStop(0,'#0c4a6e');gr.addColorStop(1,'#082f49');x.fillStyle=gr;x.fillRect(0,0,320,420);
+ x.fillStyle='#10b981';pipes.forEach(function(p){x.fillRect(p.x,0,40,p.g);x.fillRect(p.x,p.g+120,40,420);x.fillStyle='#059669';x.fillRect(p.x-3,p.g-14,46,14);x.fillRect(p.x-3,p.g+120,46,14);x.fillStyle='#10b981'});
+ x.save();x.translate(80,b.y);x.rotate(Math.max(-.5,Math.min(1,b.v*.08)));x.fillStyle='#fbbf24';x.beginPath();x.arc(0,0,12,0,7);x.fill();x.fillStyle='#fff';x.beginPath();x.arc(5,-4,4,0,7);x.fill();x.fillStyle='#000';x.fillRect(5,-5,2,2);x.fillStyle='#f97316';x.fillRect(10,0,8,5);x.restore();
+ x.fillStyle='#fff';x.font='bold 30px sans-serif';x.textAlign='center';x.fillText(score,160,50)}
+cv.addEventListener('pointerdown',function(e){e.preventDefault();flap()});document.addEventListener('keydown',function(e){if(e.code=='Space'){e.preventDefault();flap()}});
+reset();loop();
+
+})();
+</script>
+</body>
+</html>

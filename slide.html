@@ -1,0 +1,60 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<style>:root{--a:#3b82f6;--b:#1d4ed8}
+*{-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;box-sizing:border-box;margin:0;padding:0}
+html{background:#0b0f17;min-height:100%}
+body{background:#0b0f17;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#fff;touch-action:manipulation;overflow-x:hidden}
+.wrapper{width:100%;max-width:480px;margin:auto;padding:12px}
+.card{background:linear-gradient(180deg,rgba(15,18,26,.97),rgba(10,12,18,.97));border:2px solid var(--a);border-radius:20px;box-shadow:0 14px 44px rgba(0,0,0,.75),inset 0 0 40px rgba(255,255,255,.03);padding:14px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.title{font-size:10px;letter-spacing:1.5px;color:var(--a);font-weight:800;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.title .dot{width:6px;height:6px;border-radius:50%;background:var(--a);box-shadow:0 0 8px var(--a);animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.bb{font-size:10px;color:#94a3b8;text-align:right}.bb b{color:#fff;font-size:14px}
+.stat-row{display:flex;gap:8px;margin-bottom:8px}
+.stat-pill{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:5px 8px;text-align:center}
+.lbl{font-size:8px;letter-spacing:1px;color:#64748b;text-transform:uppercase;font-weight:700}
+.val{font-size:13px;font-weight:900;font-variant-numeric:tabular-nums}
+canvas{display:block;margin:0 auto;max-width:100%;height:auto;border-radius:12px;border:2px solid #1e293b;background:#070a12;touch-action:none}
+#msg{text-align:center;margin-top:8px;font-size:12px;color:rgba(255,255,255,.55);min-height:16px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(60px,1fr));gap:8px;margin-top:10px}
+.dpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.btn{padding:13px 6px;font-size:15px;font-weight:800;border:none;border-radius:12px;cursor:pointer;color:#fff;text-align:center;background:linear-gradient(135deg,var(--a),var(--b))}
+.btn:active{transform:scale(.94);filter:brightness(.9)}
+.btn.alt{background:linear-gradient(135deg,#475569,#334155)}
+.grid{display:grid;gap:6px;margin:0 auto}
+.credit-bar{margin-top:10px;text-align:center;font-size:10px;font-weight:800;letter-spacing:1.5px;color:#94a3b8;text-transform:uppercase;border-top:1px dashed rgba(255,255,255,.12);padding-top:8px}
+.credit-bar span{color:var(--a)}
+</style>
+<body>
+<div class="wrapper"><div class="card">
+<div class="header"><div><div class="title"><span class="dot"></span>RuthlessImperium</div><h2 style="font-size:17px;font-weight:900;margin-top:2px">Sliding Puzzle 🔲</h2></div><div class="bb">BEST<br><b id="best">0</b></div></div>
+<div class="stat-row"><div class="stat-pill"><div class="lbl">Langkah</div><div class="val" id="s1">0</div></div><div class="stat-pill"><div class="lbl">Waktu</div><div class="val" id="s2">0</div></div></div>
+<div id="bd" class="grid" style="grid-template-columns:repeat(4,1fr);max-width:320px;gap:6px"></div><div class="controls"><button class="btn" id="nw">🔀 Acak Baru</button></div>
+<div id="msg"></div>
+<div class="credit-bar">Engineered by <span>RuthlessImperium</span> ⚡</div>
+</div></div>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+function S(i,v){$('s'+i).textContent=v}
+function tap(el,fn){el.addEventListener('pointerdown',function(e){e.preventDefault();fn(e)})}
+function msg(t){$('msg').textContent=t}
+function gb(){try{return parseInt(localStorage.getItem('ri_slide')||'0',10)||0}catch(e){return 0}}
+function sb(v){try{localStorage.setItem('ri_slide',String(v))}catch(e){}}
+function rnd(n){return Math.floor(Math.random()*n)}
+function swipe(el,fn){var sx,sy;el.addEventListener('pointerdown',function(e){sx=e.clientX;sy=e.clientY});el.addEventListener('pointerup',function(e){var dx=e.clientX-sx,dy=e.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<20){fn('tap');return}if(Math.abs(dx)>Math.abs(dy))fn(dx>0?'r':'l');else fn(dy>0?'d':'u')})}
+
+var t,mv,sec,tm,best=gb(),bd=$('bd'),done;
+function fmt(s){return ('0'+Math.floor(s/60)).slice(-2)+':'+('0'+s%60).slice(-2)}
+function nb(e){var r=Math.floor(e/4),c=e%4,o=[];if(r>0)o.push(e-4);if(r<3)o.push(e+4);if(c>0)o.push(e-1);if(c<3)o.push(e+1);return o}
+function init(){clearInterval(tm);tm=null;t=[];for(var i=1;i<16;i++)t.push(i);t.push(0);var e=15,last=-1;for(var k=0;k<300;k++){var o=nb(e).filter(function(n){return n!=last}),n=o[rnd(o.length)];t[e]=t[n];t[n]=0;last=e;e=n}mv=0;sec=0;done=false;S(1,0);S(2,'00:00');$('best').textContent=best?best+' langkah':'--';msg('Susun angka 1–15 berurutan');draw()}
+function draw(){bd.innerHTML='';t.forEach(function(v,i){var d=document.createElement('div');d.style.cssText='aspect-ratio:1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;background:'+(v?(v==i+1?'linear-gradient(135deg,#10b981,#059669)':'linear-gradient(135deg,#3b82f6,#1d4ed8)'):'transparent');d.textContent=v||'';tap(d,function(){press(i)});bd.appendChild(d)})}
+function press(i){if(done||!t[i])return;var e=t.indexOf(0);if(nb(e).indexOf(i)<0)return;if(!tm)tm=setInterval(function(){sec++;S(2,fmt(sec))},1000);t[e]=t[i];t[i]=0;mv++;S(1,mv);draw();
+ if(t.every(function(v,k){return k==15?v==0:v==k+1})){done=true;clearInterval(tm);if(!best||mv<best){best=mv;sb(best);$('best').textContent=best+' langkah'}msg('🏆 Selesai dalam '+mv+' langkah!')}}
+tap($('nw'),init);init();
+
+})();
+</script>
+</body>
+</html>

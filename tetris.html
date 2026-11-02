@@ -1,0 +1,73 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<style>:root{--a:#06b6d4;--b:#0891b2}
+*{-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;box-sizing:border-box;margin:0;padding:0}
+html{background:#0b0f17;min-height:100%}
+body{background:#0b0f17;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#fff;touch-action:manipulation;overflow-x:hidden}
+.wrapper{width:100%;max-width:480px;margin:auto;padding:12px}
+.card{background:linear-gradient(180deg,rgba(15,18,26,.97),rgba(10,12,18,.97));border:2px solid var(--a);border-radius:20px;box-shadow:0 14px 44px rgba(0,0,0,.75),inset 0 0 40px rgba(255,255,255,.03);padding:14px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.title{font-size:10px;letter-spacing:1.5px;color:var(--a);font-weight:800;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.title .dot{width:6px;height:6px;border-radius:50%;background:var(--a);box-shadow:0 0 8px var(--a);animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.bb{font-size:10px;color:#94a3b8;text-align:right}.bb b{color:#fff;font-size:14px}
+.stat-row{display:flex;gap:8px;margin-bottom:8px}
+.stat-pill{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:5px 8px;text-align:center}
+.lbl{font-size:8px;letter-spacing:1px;color:#64748b;text-transform:uppercase;font-weight:700}
+.val{font-size:13px;font-weight:900;font-variant-numeric:tabular-nums}
+canvas{display:block;margin:0 auto;max-width:100%;height:auto;border-radius:12px;border:2px solid #1e293b;background:#070a12;touch-action:none}
+#msg{text-align:center;margin-top:8px;font-size:12px;color:rgba(255,255,255,.55);min-height:16px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(60px,1fr));gap:8px;margin-top:10px}
+.dpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.btn{padding:13px 6px;font-size:15px;font-weight:800;border:none;border-radius:12px;cursor:pointer;color:#fff;text-align:center;background:linear-gradient(135deg,var(--a),var(--b))}
+.btn:active{transform:scale(.94);filter:brightness(.9)}
+.btn.alt{background:linear-gradient(135deg,#475569,#334155)}
+.grid{display:grid;gap:6px;margin:0 auto}
+.credit-bar{margin-top:10px;text-align:center;font-size:10px;font-weight:800;letter-spacing:1.5px;color:#94a3b8;text-transform:uppercase;border-top:1px dashed rgba(255,255,255,.12);padding-top:8px}
+.credit-bar span{color:var(--a)}
+</style>
+<body>
+<div class="wrapper"><div class="card">
+<div class="header"><div><div class="title"><span class="dot"></span>RuthlessImperium</div><h2 style="font-size:17px;font-weight:900;margin-top:2px">Tetris 🧩</h2></div><div class="bb">BEST<br><b id="best">0</b></div></div>
+<div class="stat-row"><div class="stat-pill"><div class="lbl">Skor</div><div class="val" id="s1">0</div></div><div class="stat-pill"><div class="lbl">Baris</div><div class="val" id="s2">0</div></div><div class="stat-pill"><div class="lbl">Level</div><div class="val" id="s3">0</div></div></div>
+<canvas id="c" width="180" height="324"></canvas>
+<div class="controls" style="grid-template-columns:repeat(5,1fr)"><button class="btn" id="bl">◀</button><button class="btn" id="br">▶</button><button class="btn" id="ro">⟳</button><button class="btn" id="sd">▼</button><button class="btn alt" id="hd">⏬</button></div>
+<div class="controls"><button class="btn alt" id="nw">🔄 Main Lagi</button></div>
+<div id="msg"></div>
+<div class="credit-bar">Engineered by <span>RuthlessImperium</span> ⚡</div>
+</div></div>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+function S(i,v){$('s'+i).textContent=v}
+function tap(el,fn){el.addEventListener('pointerdown',function(e){e.preventDefault();fn(e)})}
+function msg(t){$('msg').textContent=t}
+function gb(){try{return parseInt(localStorage.getItem('ri_tetris')||'0',10)||0}catch(e){return 0}}
+function sb(v){try{localStorage.setItem('ri_tetris',String(v))}catch(e){}}
+function rnd(n){return Math.floor(Math.random()*n)}
+function swipe(el,fn){var sx,sy;el.addEventListener('pointerdown',function(e){sx=e.clientX;sy=e.clientY});el.addEventListener('pointerup',function(e){var dx=e.clientX-sx,dy=e.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<20){fn('tap');return}if(Math.abs(dx)>Math.abs(dy))fn(dx>0?'r':'l');else fn(dy>0?'d':'u')})}
+
+var W=10,H=18,Z=18,cv=$('c'),x=cv.getContext('2d'),P=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]]],PC=['#06b6d4','#eab308','#a855f7','#10b981','#ef4444','#3b82f6','#f97316'];
+var grid,cur,score,lines,level,over,to,best=gb();
+function newp(){var i=rnd(7);cur={m:P[i],c:PC[i],x:Math.floor((W-P[i][0].length)/2),y:0};if(hit(cur.m,cur.x,cur.y)){over=true;if(score>best){best=score;sb(best)}$('best').textContent=best;msg('Game over! Tekan Main Lagi')}}
+function hit(m,px,py){for(var r=0;r<m.length;r++)for(var c=0;c<m[r].length;c++)if(m[r][c]){var gx=px+c,gy=py+r;if(gx<0||gx>=W||gy>=H||(gy>=0&&grid[gy][gx]))return true}return false}
+function rot(m){return m[0].map(function(_,i){return m.map(function(r){return r[i]}).reverse()})}
+function lock(){cur.m.forEach(function(row,r){row.forEach(function(v,c){if(v&&cur.y+r>=0)grid[cur.y+r][cur.x+c]=cur.c})});var n=0;
+ for(var r=H-1;r>=0;r--){if(grid[r].every(Boolean)){grid.splice(r,1);grid.unshift(new Array(W).fill(0));n++;r++}}
+ if(n){lines+=n;score+=[0,100,300,500,800][n]*level;level=1+Math.floor(lines/10)}score+=4;S(1,score);S(2,lines);S(3,level);if(score>best){best=score;sb(best);$('best').textContent=best}newp()}
+function drop(){if(over)return;if(!hit(cur.m,cur.x,cur.y+1))cur.y++;else lock();draw()}
+function tick(){drop();to=setTimeout(tick,Math.max(100,650-level*50))}
+function mv(d){if(!over&&!hit(cur.m,cur.x+d,cur.y)){cur.x+=d;draw()}}
+function ro(){if(over)return;var m=rot(cur.m);if(!hit(m,cur.x,cur.y))cur.m=m;else if(!hit(m,cur.x-1,cur.y)){cur.m=m;cur.x--}else if(!hit(m,cur.x+1,cur.y)){cur.m=m;cur.x++}draw()}
+function hard(){if(over)return;while(!hit(cur.m,cur.x,cur.y+1))cur.y++;lock();draw()}
+function draw(){x.fillStyle='#070a12';x.fillRect(0,0,180,324);for(var r=0;r<H;r++)for(var c=0;c<W;c++)if(grid[r][c]){x.fillStyle=grid[r][c];x.fillRect(c*Z+1,r*Z+1,Z-2,Z-2)}
+ if(!over){x.fillStyle=cur.c;cur.m.forEach(function(row,r){row.forEach(function(v,c){if(v)x.fillRect((cur.x+c)*Z+1,(cur.y+r)*Z+1,Z-2,Z-2)})})}}
+function init(){clearTimeout(to);grid=[];for(var r=0;r<H;r++)grid.push(new Array(W).fill(0));score=0;lines=0;level=1;over=false;S(1,0);S(2,0);S(3,1);$('best').textContent=best;msg('');newp();draw();to=setTimeout(tick,650)}
+tap($('bl'),function(){mv(-1)});tap($('br'),function(){mv(1)});tap($('ro'),ro);tap($('sd'),drop);tap($('hd'),hard);tap($('nw'),init);
+document.addEventListener('keydown',function(e){var k=e.key;if(k=='ArrowLeft')mv(-1);else if(k=='ArrowRight')mv(1);else if(k=='ArrowUp')ro();else if(k=='ArrowDown')drop();else if(k==' ')hard();else return;e.preventDefault()});
+init();
+
+})();
+</script>
+</body>
+</html>
