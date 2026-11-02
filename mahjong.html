@@ -1,0 +1,178 @@
+<style>
+* { -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; box-sizing: border-box; margin: 0; padding: 0; }
+html { background: #0b0f17; min-height: 100%; }
+body { margin: 0; background: #0b0f17; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #fff; touch-action: manipulation; overflow-x: hidden; }
+.wrapper { width: 100%; max-width: 480px; margin: auto; padding: 12px; }
+.card { background: linear-gradient(180deg, rgba(15,18,26,0.97), rgba(10,12,18,0.97)); border: 2px solid #10b981; border-radius: 20px; box-shadow: 0 14px 44px rgba(0,0,0,0.75), inset 0 0 40px rgba(16,185,129,0.07); padding: 14px; position: relative; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.title { font-size: 10px; letter-spacing: 1.5px; color: #10b981; font-weight: 800; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+.title .dot { width: 6px; height: 6px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981; animation: pulse 1.4s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .3 } }
+.best-badge { font-size: 10px; color: #94a3b8; text-align: right; }
+.stat-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.stat-pill { flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 5px 8px; text-align: center; }
+.stat-pill .lbl { font-size: 8px; letter-spacing: 1px; color: #64748b; text-transform: uppercase; font-weight: 700; }
+.stat-pill .val { font-size: 13px; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; }
+#wrap { position: relative; width: 100%; padding: 12px 0; border-radius: 14px; border: 2px solid #1e293b; background: radial-gradient(circle at 50% 40%, #0f3d2e, #08140f 75%); box-shadow: inset 0 0 30px rgba(0,0,0,0.6); overflow: hidden; }
+#board { position: relative; width: 284px; height: 276px; margin: 0 auto; }
+.t { position: absolute; width: 34px; height: 44px; border-radius: 5px; background: linear-gradient(160deg, #f8fafc, #cbd5e1); box-shadow: 2px 3px 0 #475569, 3px 6px 8px rgba(0,0,0,0.6); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; cursor: pointer; transition: transform .22s, opacity .22s, filter .15s; }
+.t b { font-size: 19px; font-weight: 900; }
+.t i { font-style: normal; font-size: 11px; font-weight: 800; margin-top: 3px; }
+.t.blocked { filter: brightness(0.7); }
+.t.sel { outline: 3px solid #f59e0b; box-shadow: 0 0 14px #f59e0b; transform: translateY(-2px); }
+.t.hint { animation: hint .45s infinite alternate; }
+@keyframes hint { from { outline: 3px solid #10b981; } to { outline: 3px solid #fff; } }
+.t.gone { transform: scale(.3); opacity: 0; pointer-events: none; }
+.t.shake { animation: shake .25s; }
+@keyframes shake { 25% { margin-left: -3px } 75% { margin-left: 3px } }
+#msg { text-align: center; margin-top: 8px; font-size: 12px; color: rgba(255,255,255,.55); min-height: 16px; }
+#overlay { display: none; position: absolute; inset: 0; background: rgba(8,12,18,0.88); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+#overlay h3 { font-size: 26px; font-weight: 900; color: #10b981; margin-bottom: 6px; }
+#overlay p { font-size: 13px; color: #94a3b8; margin-bottom: 16px; }
+.controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+.btn { padding: 13px 6px; font-size: 13px; font-weight: 800; border: none; border-radius: 12px; cursor: pointer; color: #fff; text-align: center; }
+.btn:active { transform: scale(0.95); filter: brightness(0.9); }
+.b1 { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.b2 { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.b3 { background: linear-gradient(135deg, #10b981, #059669); }
+.credit-bar { margin-top: 10px; text-align: center; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: #94a3b8; text-transform: uppercase; border-top: 1px dashed rgba(255,255,255,0.12); padding-top: 8px; }
+.credit-bar span { color: #10b981; text-shadow: 0 0 10px rgba(16,185,129,0.5); }
+</style>
+<body>
+<div class="wrapper"><div class="card">
+  <div class="header">
+    <div>
+      <div class="title"><span class="dot"></span>RuthlessImperium</div>
+      <h2 style="font-size:17px;font-weight:900;margin-top:2px">Mahjong 🀄</h2>
+    </div>
+    <div class="best-badge">BEST TIME<br><b id="best" style="color:#fff;font-size:14px">--:--</b></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-pill"><div class="lbl">Sisa</div><div class="val" id="left">80</div></div>
+    <div class="stat-pill"><div class="lbl">Langkah</div><div class="val" id="moves">0</div></div>
+    <div class="stat-pill"><div class="lbl">Waktu</div><div class="val" id="time">00:00</div></div>
+  </div>
+  <div id="wrap">
+    <div id="board"></div>
+    <div id="overlay"><h3>MENANG! 🏆</h3><p id="ovtxt"></p><button class="btn b3" id="again" style="padding:13px 28px">🔄 Main Lagi</button></div>
+  </div>
+  <div id="msg">Cocokkan 2 tile yang sama dan tidak terhalang</div>
+  <div class="controls">
+    <button class="btn b1" id="hintBtn">💡 Hint</button>
+    <button class="btn b2" id="shufBtn">🔀 Acak</button>
+    <button class="btn b3" id="newBtn">🔄 Baru</button>
+  </div>
+  <div class="credit-bar">Engineered by <span>RuthlessImperium</span> ⚡</div>
+</div></div>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var boardEl=$('board'),msgEl=$('msg');
+var F=[],NUM='一二三四五六七八九',i;
+for(i=1;i<=9;i++)F.push({b:i,s:'筒',c:'#2563eb'});
+for(i=1;i<=9;i++)F.push({b:i,s:'竹',c:'#059669'});
+for(i=0;i<9;i++)F.push({b:NUM[i],s:'萬',c:'#dc2626'});
+['東','南','西','北'].forEach(function(w){F.push({b:w,s:'風',c:'#0f172a'})});
+[['中','#dc2626'],['發','#059669'],['白','#475569']].forEach(function(d){F.push({b:d[0],s:'',c:d[1]})});
+var tiles=[],sel=null,moves=0,sec=0,timer=null,over=false,best=0;
+try{best=parseInt(localStorage.getItem('mj_best_v1')||'0',10)||0}catch(e){}
+function fmt(s){return ('0'+Math.floor(s/60)).slice(-2)+':'+('0'+s%60).slice(-2)}
+function key(c,r,z){return c+','+r+','+z}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function freeIn(occ,t){return !occ[key(t.c,t.r,t.z+1)]&&(!occ[key(t.c-1,t.r,t.z)]||!occ[key(t.c+1,t.r,t.z)])}
+function aliveOcc(){var o={};tiles.forEach(function(t){if(t.alive)o[key(t.c,t.r,t.z)]=1});return o}
+function aliveList(){return tiles.filter(function(t){return t.alive})}
+function assign(list,pairs){
+  for(var n=0;n<80;n++){
+    var occ={},left=list.slice(),p=shuffle(pairs.slice()),res=[],ok=true;
+    list.forEach(function(t){occ[key(t.c,t.r,t.z)]=1});
+    while(left.length){
+      var fr=left.filter(function(t){return freeIn(occ,t)});
+      if(fr.length<2){ok=false;break}
+      shuffle(fr);var a=fr[0],b=fr[1],f=p.pop();
+      res.push([a,b,f]);
+      delete occ[key(a.c,a.r,a.z)];delete occ[key(b.c,b.r,b.z)];
+      left=left.filter(function(t){return t!==a&&t!==b});
+    }
+    if(ok){res.forEach(function(x){x[0].f=x[2];x[1].f=x[2]});return true}
+  }
+  return false;
+}
+function setFace(t){var f=F[t.f];t.el.innerHTML='<b style="color:'+f.c+'">'+f.b+'</b><i style="color:'+f.c+'">'+f.s+'</i>'}
+function stats(){
+  $('left').textContent=aliveList().length;$('moves').textContent=moves;$('time').textContent=fmt(sec);
+  $('best').textContent=best?fmt(best):'--:--';
+}
+function refresh(){var occ=aliveOcc();tiles.forEach(function(t){if(t.alive)t.el.classList.toggle('blocked',!freeIn(occ,t))})}
+function findPair(){
+  var occ=aliveOcc(),fr=aliveList().filter(function(t){return freeIn(occ,t)});
+  for(var a=0;a<fr.length;a++)for(var b=a+1;b<fr.length;b++)if(fr[a].f===fr[b].f)return [fr[a],fr[b]];
+  return null;
+}
+function unsel(){if(sel){sel.el.classList.remove('sel');sel=null}}
+function startTimer(){if(timer)return;timer=setInterval(function(){sec++;$('time').textContent=fmt(sec)},1000)}
+function win(){
+  over=true;clearInterval(timer);timer=null;
+  var nb=!best||sec<best;if(nb){best=sec;try{localStorage.setItem('mj_best_v1',String(best))}catch(e){}}
+  $('ovtxt').textContent='Waktu '+fmt(sec)+' • '+moves+' langkah'+(nb?' • Rekor baru!':'');
+  $('overlay').style.display='flex';stats();
+}
+function clickTile(t){
+  if(over||!t.alive)return;
+  startTimer();
+  if(!freeIn(aliveOcc(),t)){t.el.classList.remove('shake');void t.el.offsetWidth;t.el.classList.add('shake');return}
+  msgEl.textContent='';
+  if(!sel){sel=t;t.el.classList.add('sel');return}
+  if(sel===t){unsel();return}
+  if(sel.f===t.f){
+    var a=sel;unsel();
+    [a,t].forEach(function(x){x.alive=false;x.el.classList.add('gone');setTimeout(function(){x.el.remove()},260)});
+    moves++;refresh();stats();
+    if(!aliveList().length)win();
+    else if(!findPair())msgEl.textContent='Tidak ada langkah lagi — tekan 🔀 Acak';
+  } else {unsel();sel=t;t.el.classList.add('sel')}
+}
+function build(){
+  var ids=shuffle(F.map(function(_,i){return i})).slice(0,20),pairs=[],pos=[],r,c;
+  ids.forEach(function(i){pairs.push(i,i)});
+  for(r=0;r<6;r++)for(c=0;c<8;c++)pos.push({c:c,r:r,z:0});
+  for(r=1;r<5;r++)for(c=1;c<7;c++)pos.push({c:c,r:r,z:1});
+  for(r=2;r<4;r++)for(c=2;c<6;c++)pos.push({c:c,r:r,z:2});
+  boardEl.innerHTML='';tiles=[];
+  pos.forEach(function(p){
+    var el=document.createElement('div');el.className='t';
+    el.style.left=(p.c*35-p.z*3)+'px';el.style.top=(p.r*45-p.z*4)+'px';el.style.zIndex=p.z*100+p.r;
+    var t={c:p.c,r:p.r,z:p.z,alive:true,el:el,f:0};
+    el.addEventListener('pointerdown',function(e){e.preventDefault();clickTile(t)});
+    tiles.push(t);boardEl.appendChild(el);
+  });
+  assign(tiles,pairs);tiles.forEach(setFace);
+}
+function newGame(){
+  clearInterval(timer);timer=null;sec=0;moves=0;over=false;sel=null;
+  $('overlay').style.display='none';msgEl.textContent='Cocokkan 2 tile yang sama dan tidak terhalang';
+  build();refresh();stats();
+}
+$('hintBtn').addEventListener('pointerdown',function(e){
+  e.preventDefault();if(over)return;
+  var p=findPair();
+  if(!p){msgEl.textContent='Tidak ada pasangan — tekan 🔀 Acak';return}
+  p.forEach(function(t){t.el.classList.add('hint')});
+  setTimeout(function(){p.forEach(function(t){t.el.classList.remove('hint')})},1400);
+});
+$('shufBtn').addEventListener('pointerdown',function(e){
+  e.preventDefault();if(over)return;
+  var al=aliveList(),fs=al.map(function(t){return t.f}).sort(function(a,b){return a-b}),pairs=[];
+  for(var i=0;i<fs.length;i+=2)pairs.push(fs[i]);
+  unsel();
+  if(assign(al,pairs)){al.forEach(setFace);msgEl.textContent='Tile diacak ulang ✅'}
+  else msgEl.textContent='Gagal mengacak, coba lagi';
+  refresh();
+});
+$('newBtn').addEventListener('pointerdown',function(e){e.preventDefault();newGame()});
+$('again').addEventListener('pointerdown',function(e){e.preventDefault();newGame()});
+newGame();
+})();
+</script>
+</body>
+</html>
